@@ -59,15 +59,21 @@ Network
 ## 🐧 Linux Server Setup (Recommended)
 
 ### Install WireGuard
+```
 sudo apt update
 sudo apt install wireguard -y
+```
 
 ### Generate Keys
+```
 wg genkey | tee server_private.key | wg pubkey > server_public.key
+```
 
 ### Configure Server
+```
 sudo nano /etc/wireguard/wg0.conf
-
+```
+```
 [Interface]
 PrivateKey = SERVER_PRIVATE_KEY
 Address = 10.0.0.1/24
@@ -78,43 +84,54 @@ PostUp = iptables -t nat -A POSTROUTING -o eth0 -j MASQUERADE
 
 PostDown = iptables -D FORWARD -i wg0 -j ACCEPT
 PostDown = iptables -t nat -D POSTROUTING -o eth0 -j MASQUERADE
+```
 
 ### Enable IP Forwarding
+```
 sudo nano /etc/sysctl.conf
 net.ipv4.ip_forward=1
 sudo sysctl -p
-
+```
 ### Start WireGuard
+```
 sudo wg-quick up wg0
 sudo systemctl enable wg-quick@wg0
-
+```
 ---
 
 ## 🖥️ Windows Server Setup
 
 ### Install WireGuard
+```
 https://www.wireguard.com/install/
-
+```
 ### Configuration
+```
 [Interface]
 PrivateKey = SERVER_PRIVATE_KEY
 Address = 10.0.0.1/24
 ListenPort = 51820
 DNS = 8.8.8.8
+```
 
 ### Enable Routing (PowerShell)
+```
 Set-ItemProperty -Path "HKLM:\SYSTEM\CurrentControlSet\Services\Tcpip\Parameters" -Name IPEnableRouter -Value 1
+```
 
 ### Configure NAT
+```
 New-NetNat -Name "WireGuardNAT" -InternalIPInterfaceAddressPrefix 10.0.0.0/24
+```
 
 ### Allow Firewall
+```
 New-NetFirewallRule -DisplayName "WireGuard VPN" -Direction Inbound -Protocol UDP -LocalPort 51820 -Action Allow
-
+```
 ---
 
 ## 💻 Windows Client Setup
-
+```
 [Interface]
 PrivateKey = CLIENT_PRIVATE_KEY
 Address = 10.0.0.2/24
@@ -125,15 +142,17 @@ PublicKey = SERVER_PUBLIC_KEY
 Endpoint = SERVER_PUBLIC_IP:51820
 AllowedIPs = 0.0.0.0/0
 PersistentKeepalive = 25
-
+```
 ---
 
 ## 🐧 Linux Client Setup
-
+```
 sudo apt install wireguard -y
 
 sudo nano /etc/wireguard/wg0.conf
+```
 
+```
 [Interface]
 PrivateKey = CLIENT_PRIVATE_KEY
 Address = 10.0.0.2/24
@@ -144,25 +163,27 @@ PublicKey = SERVER_PUBLIC_KEY
 Endpoint = SERVER_PUBLIC_IP:51820
 AllowedIPs = 0.0.0.0/0
 PersistentKeepalive = 25
+```
 
+```
 sudo wg-quick up wg0
-
+```
 ---
 
 ## 🔗 Add Client to Server
-
+```
 [Peer]
 PublicKey = CLIENT_PUBLIC_KEY
 AllowedIPs = 10.0.0.2/32
-
+```
 ---
 
 ## 🧪 Testing
-
+```
 ping 10.0.0.1
 
 sudo wg
-
+```
 ---
 
 ## 🔒 Security Best Practices
